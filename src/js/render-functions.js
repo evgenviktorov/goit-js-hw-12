@@ -5,14 +5,14 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const galleryContainer = document.querySelector('.gallery');
 const loader = document.querySelector('.loader');
+const loadBtn = document.querySelector('.load-more-btn');
 
 let lightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
   captionDelay: 250,
 });
 
-export function renderImages(images, query) {
-  clearGallery();
+export function createGallery(images, query) {
   if (images.length === 0) {
     iziToast.error({
       title: '',
@@ -80,4 +80,12 @@ export function showLoader() {
 
 export function hideLoader() {
   loader.classList.add('hidden');
+}
+
+export function showLoadMoreButton() {
+  loadBtn.classList.remove('hidden');
+}
+
+export function hideLoadMoreButton() {
+  loadBtn.classList.add('hidden');
 }

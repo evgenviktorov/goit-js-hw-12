@@ -1,45 +1,80 @@
 import { getImagesByQuery } from './js/pixabay-api.js';
 import {
-  renderImages,
+  createGallery,
   clearGallery,
   showLoader,
   hideLoader,
+  showLoadMoreButton,
+  hideLoadMoreButton,
 } from './js/render-functions.js';
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
 const form = document.querySelector('.form');
 const searchInput = document.querySelector('input[name="search-text"]');
+const loadMoreBtn = document.querySelector('.load-more-btn');
+
+let query = '';
+let page = 1;
+const PER_PAGE = 15;
 
 form.addEventListener('submit', event => {
   event.preventDefault();
 
-  const query = searchInput.value.trim();
+  query = searchInput.value.trim();
 
-  if (query === '') {
-    iziToast.warning({
-      title: 'Warning',
-      message: 'Please enter a search query!',
+  page = 1;
+  clearGallery();
+  hideLoadMoreButton();
+  fetchAndRenderImages();
+});
+
+loadMoreBtn.addEventListener('click', () => {
+  page += 1;
+  fetchAndRenderImages(true);
+});
+
+async function fetchAndRenderImages(isLoadMore = false) {
+  showLoader();
+  try {
+    const { hits, totalHits } = await getImagesByQuery(query, page);
+
+    createGallery(hits, query);
+
+    const loaded = page * PER_PAGE;
+    if (loaded < totalHits) {
+      showLoadMoreButton();
+    } else {
+      hideLoadMoreButton();
+      if (page > 1) {
+        iziToast.info({
+          message: "We're sorry, but you've reached the end of search results.",
+          position: 'topRight',
+        });
+      }
+    }
+
+    if (isLoadMore) {
+      smoothScrollAfterRender();
+    }
+  } catch (error) {
+    iziToast.error({
+      title: 'Error',
+      message: `Something went wrong: ${error.message}`,
       position: 'topRight',
     });
-    return;
+  } finally {
+    hideLoader();
   }
+}
 
-  clearGallery();
-  showLoader();
+function smoothScrollAfterRender() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery-item')
+    .getBoundingClientRect();
 
-  getImagesByQuery(query)
-    .then(images => {
-      renderImages(images, query);
-    })
-    .catch(error => {
-      iziToast.error({
-        title: 'Error',
-        message: `Something went wrong: ${error.message}`,
-        position: 'topRight',
-      });
-    })
-    .finally(() => {
-      hideLoader();
-    });
-});
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
+}
