@@ -184,3 +184,10 @@ input::placeholder {
 .load-more-btn:hover {
   background: #6c8cff;
 }
+
+.loader-btn-cont {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 20px auto;
+}
